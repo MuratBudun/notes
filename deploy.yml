@@ -231,7 +231,7 @@ spec:
             - name: "AuthConfiguration__ClaimTypeRoles"
               value: "roles"
             - name: "AuthConfiguration__ClaimTypeEmail"
-              value: "emails"
+              value: "email"
             - name: "AuthConfiguration__UseRolesForWorkspaceCreating"
               value: "false"
       volumes:
