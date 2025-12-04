@@ -225,7 +225,7 @@ spec:
                   name: qmex-forms-app-config
                   key: OIDC_CLIENT_SECRET
             - name: "AuthConfiguration__ExtraScope"
-              value: "${AUTH_CLIENT_ID}"
+              value: ""
             - name: "AuthConfiguration__ClaimTypeUniqueIdentity"
               value: "oid"
             - name: "AuthConfiguration__ClaimTypeRoles"
