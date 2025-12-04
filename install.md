@@ -12,33 +12,33 @@ Bu dokümanda QMex Forms uygulamasının Azure Kubernetes Service (AKS) üzerind
 Aşağıdaki değişkenleri ortamınıza göre düzenleyin ve Cloud Shell'de tanımlayın:
 
 ```bash
-CLUSTER_NAME="qmex-forms-k8s-cluster-op"
-RESOURCE_GROUP="qmex-forms-on-premise-rg"
-APPGW_NAME="qmex-forms-appgw-op"
+CLUSTER_NAME="qmex-forms-k8s-cluster"
+RESOURCE_GROUP="qmex-forms-rg"
+APPGW_NAME="qmex-forms-appgw"
 APPGW_SUBNET_CIDR="10.225.0.0/24"  # Aşağıdaki APPGW_SUBNET_CIDR seçimindeki açıklamaya bakın
 SSL_CERT_NAME="qmex-forms-ssl"
 STORAGE_ACCOUNT_NAME="qmexformsstorage"
-STORAGE_RESOURCE_GROUP="qmex-forms-on-premise-rg"
+STORAGE_RESOURCE_GROUP="qmex-forms-rg"
 
 # Container Image Ayarları
-ACR_NAME="qmexcontainers"                              # Azure Container Registry adı
-TENANT_API_IMAGE_NAME="qmex-forms-tenant-management-api-abdi"  # Tenant API image adı
-APP_IMAGE_NAME="qmex-forms-app-abdi"                   # App image adı
-IMAGE_TAG="latest"                      # Image tag 
+ACR_NAME="qmexcontainers"                                 # Azure Container Registry adı
+TENANT_API_IMAGE_NAME="qmex-forms-tenant-management-api"  # Tenant API image adı
+APP_IMAGE_NAME="qmex-forms-app"                           # App image adı
+IMAGE_TAG="latest"                                        # Image tag 
 
 # URL Ayarları
-WEBSITE_URL="https://qmexforms.com"                    # Ana website URL
-APP_URL="https://app-abdiibrahim.qmexforms.com"        # Uygulama URL
-APP_HOST="app-abdiibrahim.qmexforms.com"               # Ingress host (protokol olmadan)
+WEBSITE_URL="https://qmexforms.com"        # Ana website URL
+APP_URL="https://app.qmexforms.com"        # Uygulama URL
+APP_HOST="app.qmexforms.com"               # Ingress host (protokol olmadan)
 
 # Secret Değerleri (Hassas Bilgiler - Değiştirin!)
 DB_CONNECTION_STRING="Host=your-postgres-server.postgres.database.azure.com; Database=your_database; Username=your_username; Password=YOUR_DB_PASSWORD; MinPoolSize=2; MaxPoolSize=10;"
-SENDGRID_API_KEY="YOUR_SENDGRID_API_KEY"
-OIDC_CLIENT_SECRET="YOUR_OIDC_CLIENT_SECRET"
+SENDGRID_API_KEY="SENDGRID_API_KEY"
+OIDC_CLIENT_SECRET="OIDC_CLIENT_SECRET"
 
 # Authentication Ayarları (Azure AD B2C)
-AUTH_AUTHORITY="https://qmexforms.b2clogin.com/qmexforms.onmicrosoft.com/B2C_1_susi_new/v2.0/"
-AUTH_CLIENT_ID="9192a8c0-81c8-493d-b6a9-3d1eb600eeab"
+AUTH_AUTHORITY=""
+AUTH_CLIENT_ID="OIDC_CLIENT_ID"
 ```
 
 ### APPGW_SUBNET_CIDR Seçimi
@@ -475,7 +475,7 @@ kubectl get ingress -n qmex-forms-ns
 DNS kaydınız yapılandırıldıktan sonra:
 
 ```bash
-curl -I https://app-abdiibrahim.qmexforms.com
+curl -I https://app.qmexforms.com
 ```
 
 ---
@@ -486,4 +486,4 @@ curl -I https://app-abdiibrahim.qmexforms.com
 |------|-------|----------------|
 | Pods | `kubectl get pods -n qmex-forms-ns` | Tüm pod'lar Running |
 | Ingress | `kubectl get ingress -n qmex-forms-ns` | ADDRESS atanmış |
-| HTTPS | `curl -I https://app-abdiibrahim.qmexforms.com` | HTTP/2 200 |
+| HTTPS | `curl -I https://app.qmexforms.com` | HTTP/2 200 |
