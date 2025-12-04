@@ -1,0 +1,295 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: qmex-forms-ns
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: qmex-aks-admin
+  namespace: qmex-forms-ns
+
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: qmex-aks-api-role
+  namespace: qmex-forms-ns
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - endpoints
+    verbs:
+      - get
+      - list
+      - watch
+
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: qmex-aks-api-role
+  namespace: qmex-forms-ns
+subjects:
+  - kind: ServiceAccount
+    name: qmex-aks-admin
+    namespace: qmex-forms-ns
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: qmex-aks-api-role
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qmex-forms-tenant-management-api
+  namespace: qmex-forms-ns  
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qmex-forms-tenant-management-api
+  template:
+    metadata:
+      labels:
+        app: qmex-forms-tenant-management-api
+    spec:
+      containers:
+        - name: qmex-forms-tenant-management-api
+          image: ${ACR_NAME}.azurecr.io/${TENANT_API_IMAGE_NAME}:${IMAGE_TAG}
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: 250m
+              memory: 1Gi
+          volumeMounts:
+            - mountPath: "/app/persistent/global"
+              name: volume-global
+            - mountPath: "/app/persistent/tenant"
+              name: volume-tenant
+            - mountPath: "/app/persistent/temp"
+              name: volume-temp
+            - mountPath: "/app/persistent/queue"
+              name: volume-queue
+          env:
+            - name: ConnectionStrings__default
+              valueFrom:
+                secretKeyRef:
+                  name: qmex-forms-app-config
+                  key: DB_CONNECTION_STRING_PROD
+            - name: "ASPNETCORE_FORWARDEDHEADERS_ENABLED"
+              value: "true"
+            - name: "AllowedHosts"
+              value: "*"
+            - name: "QMexConfiguration__TenantManagementUrl"
+              value: "http://qmex-forms-tenant-management-api-service"
+            - name: "QMexConfiguration__WebsiteUrl"
+              value: "${WEBSITE_URL}"
+            - name: "QMexConfiguration__AppUrl"
+              value: "${APP_URL}"
+            - name: "QMexConfiguration__FilesRootPath"
+              value: "persistent/tenant"
+            - name: "QMexConfiguration__FilesTempPath"
+              value: "persistent/temp"
+            - name: "QMexConfiguration__SharedKeysPath"
+              value: "persistent/global/system/sessions"
+            - name: "QMexConfiguration__PluginsPath"
+              value: "Plugins"
+            - name: "Serilog__WriteTo__1__Args__path"
+              value: "persistent/global/system/logs/tenant-log.txt"
+            - name: "SendGridEmail__ApiKey"
+              valueFrom:
+                secretKeyRef:
+                  name: qmex-forms-app-config
+                  key: SENDGRID_API_KEY_PROD
+            - name: "SendGridEmail__FromEmail"
+              value: "noreply@qmexforms.com"
+            - name: "SendGridEmail__FromName"
+              value: "QMex Forms"
+      volumes:
+        - name: volume-global
+          azureFile:
+            secretName: qmex-forms-storage-secret
+            shareName: global
+
+        - name: volume-tenant
+          azureFile:
+            secretName: qmex-forms-storage-secret
+            shareName: tenant
+
+        - name: volume-temp
+          azureFile:
+            secretName: qmex-forms-storage-secret
+            shareName: temp
+
+        - name: volume-queue
+          azureFile:
+            secretName: qmex-forms-storage-secret
+            shareName: queue
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qmex-forms-tenant-management-api-service
+  namespace: qmex-forms-ns  
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8080
+  selector:
+    app: qmex-forms-tenant-management-api
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qmex-forms-app
+  namespace: qmex-forms-ns  
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qmex-forms-app
+  template:
+    metadata:
+      labels:
+        app: qmex-forms-app
+    spec:
+      containers:
+        - name: qmex-forms-app
+          image: ${ACR_NAME}.azurecr.io/${APP_IMAGE_NAME}:${IMAGE_TAG}
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: 250m
+              memory: 1Gi
+          volumeMounts:
+            - mountPath: "/app/persistent/global"
+              name: volume-global
+            - mountPath: "/app/persistent/tenant"
+              name: volume-tenant
+            - mountPath: "/app/persistent/temp"
+              name: volume-temp
+            - mountPath: "/app/persistent/queue"
+              name: volume-queue
+          env:
+            - name: "ASPNETCORE_FORWARDEDHEADERS_ENABLED"
+              value: "true"
+            - name: "AllowedHosts"
+              value: "*"
+            - name: "QMexConfiguration__TenantManagementUrl"
+              value: "http://qmex-forms-tenant-management-api-service"
+            - name: "QMexConfiguration__WebsiteUrl"
+              value: "${WEBSITE_URL}"
+            - name: "QMexConfiguration__AppUrl"
+              value: "${APP_URL}"
+            - name: "QMexConfiguration__FilesRootPath"
+              value: "persistent/tenant"
+            - name: "QMexConfiguration__FilesTempPath"
+              value: "persistent/temp"
+            - name: "QMexConfiguration__SharedKeysPath"
+              value: "persistent/global/system/sessions"
+            - name: "QMexConfiguration__PluginsPath"
+              value: "Plugins"
+            - name: "Serilog__WriteTo__1__Args__path"
+              value: "persistent/global/system/logs/app-log.txt"
+            - name: "SendGridEmail__ApiKey"
+              valueFrom:
+                secretKeyRef:
+                  name: qmex-forms-app-config
+                  key: SENDGRID_API_KEY_PROD
+            - name: "SendGridEmail__FromEmail"
+              value: "noreply@qmexforms.com"
+            - name: "SendGridEmail__FromName"
+              value: "QMex Forms"
+            - name: "AuthConfiguration__Authority"
+              value: "${AUTH_AUTHORITY}"
+            - name: "AuthConfiguration__ClientId"
+              value: "${AUTH_CLIENT_ID}"
+            - name: "AuthConfiguration__ClientSecret"
+              valueFrom:
+                secretKeyRef:
+                  name: qmex-forms-app-config
+                  key: OIDC_CLIENT_SECRET
+            - name: "AuthConfiguration__ExtraScope"
+              value: "${AUTH_CLIENT_ID}"
+            - name: "AuthConfiguration__ClaimTypeUniqueIdentity"
+              value: "oid"
+            - name: "AuthConfiguration__ClaimTypeRoles"
+              value: "roles"
+            - name: "AuthConfiguration__ClaimTypeEmail"
+              value: "emails"
+            - name: "AuthConfiguration__UseRolesForWorkspaceCreating"
+              value: "false"
+      volumes:
+        - name: volume-global
+          azureFile:
+            secretName: qmex-forms-storage-secret
+            shareName: global
+
+        - name: volume-tenant
+          azureFile:
+            secretName: qmex-forms-storage-secret
+            shareName: tenant
+
+        - name: volume-temp
+          azureFile:
+            secretName: qmex-forms-storage-secret
+            shareName: temp
+
+        - name: volume-queue
+          azureFile:
+            secretName: qmex-forms-storage-secret
+            shareName: queue
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qmex-forms-app-service
+  namespace: qmex-forms-ns  
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8080
+  selector:
+    app: qmex-forms-app
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: qmex-forms-app-ingress
+  namespace: qmex-forms-ns
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/request-timeout: "60"
+    appgw.ingress.kubernetes.io/health-probe-path: "/health"
+    appgw.ingress.kubernetes.io/appgw-ssl-certificate: "${SSL_CERT_NAME}"
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  rules:
+    - host: "${APP_HOST}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: qmex-forms-app-service
+                port:
+                  number: 80
