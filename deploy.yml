@@ -313,6 +313,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: qmex-forms-background-worker
+  namespace: qmex-forms-ns
 spec:
   replicas: 1
   selector:
@@ -411,6 +412,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: qmex-forms-background-worker-service
+  namespace: qmex-forms-ns
 spec:
   type: ClusterIP
   ports:
