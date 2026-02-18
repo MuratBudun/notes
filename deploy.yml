@@ -110,6 +110,16 @@ spec:
               value: "993"
             - name: "SMTPMail__UseSsl"
               value: "false"
+            - name: "SMTPMail__FromEmail"
+              valueFrom:
+                secretKeyRef:
+                  name: qmex-forms-app-config
+                  key: SMTP_MAIL_FROM_EMAIL           
+            - name: "SMTPMail__FromName"
+              valueFrom:
+                secretKeyRef:
+                  name: qmex-forms-app-config
+                  key: SMTP_MAIL_FROM_NAME           
             - name: "SMTPMail__Username"
               valueFrom:
                 secretKeyRef:
@@ -238,6 +248,16 @@ spec:
               value: "993"
             - name: "SMTPMail__UseSsl"
               value: "false"
+            - name: "SMTPMail__FromEmail"
+              valueFrom:
+                secretKeyRef:
+                  name: qmex-forms-app-config
+                  key: SMTP_MAIL_FROM_EMAIL           
+            - name: "SMTPMail__FromName"
+              valueFrom:
+                secretKeyRef:
+                  name: qmex-forms-app-config
+                  key: SMTP_MAIL_FROM_NAME           
             - name: "SMTPMail__Username"
               valueFrom:
                 secretKeyRef:
@@ -377,6 +397,16 @@ spec:
               value: "993"
             - name: "SMTPMail__UseSsl"
               value: "false"
+            - name: "SMTPMail__FromEmail"
+              valueFrom:
+                secretKeyRef:
+                  name: qmex-forms-app-config
+                  key: SMTP_MAIL_FROM_EMAIL           
+            - name: "SMTPMail__FromName"
+              valueFrom:
+                secretKeyRef:
+                  name: qmex-forms-app-config
+                  key: SMTP_MAIL_FROM_NAME           
             - name: "SMTPMail__Username"
               valueFrom:
                 secretKeyRef:
