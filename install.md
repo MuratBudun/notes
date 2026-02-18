@@ -21,10 +21,11 @@ STORAGE_ACCOUNT_NAME="qmexformsstorage"
 STORAGE_RESOURCE_GROUP="qmex-forms-rg"
 
 # Container Image Ayarları
-ACR_NAME="qmexcontainers"                                 # Azure Container Registry adı
-TENANT_API_IMAGE_NAME="qmex-forms-tenant-management-api"  # Tenant API image adı
-APP_IMAGE_NAME="qmex-forms-app"                           # App image adı
-IMAGE_TAG="latest"                                        # Image tag 
+ACR_NAME="qmexcontainers"                                    # Azure Container Registry adı
+TENANT_API_IMAGE_NAME="qmex-forms-tenant-management-api"     # Tenant API image adı
+APP_IMAGE_NAME="qmex-forms-app"                              # App image adı
+BACKGROUND_WORKER_IMAGE_NAME="qmex-forms-background-worker"  # Background Worker image adı
+IMAGE_TAG="latest"                                           # Image tag 
 
 # URL Ayarları
 WEBSITE_URL="https://qmexforms.com"        # Ana website URL
@@ -34,6 +35,8 @@ APP_HOST="app.qmexforms.com"               # Ingress host (protokol olmadan)
 # Secret Değerleri (Hassas Bilgiler - Değiştirin!)
 DB_CONNECTION_STRING="Host=your-postgres-server.postgres.database.azure.com; Database=your_database; Username=your_username; Password=YOUR_DB_PASSWORD; MinPoolSize=2; MaxPoolSize=10;"
 SENDGRID_API_KEY="SENDGRID_API_KEY"
+SMTP_MAIL_USERNAME="YOUR_SMTP_MAIL_USERNAME"
+SMTP_MAIL_PASSWORD="YOUR_SMTP_MAIL_PASSWORD"
 OIDC_CLIENT_SECRET="OIDC_CLIENT_SECRET"
 
 # Authentication Ayarları (Azure AD B2C)
@@ -389,6 +392,8 @@ kubectl create secret generic qmex-forms-app-config \
     --from-literal=DB_CONNECTION_STRING_PROD="$DB_CONNECTION_STRING" \
     --from-literal=DB_CONNECTION_STRING_TEST="" \
     --from-literal=SENDGRID_API_KEY_PROD="$SENDGRID_API_KEY" \
+    --from-literal=SMTP_MAIL_USERNAME="$SMTP_MAIL_USERNAME" \
+    --from-literal=SMTP_MAIL_PASSWORD="$SMTP_MAIL_PASSWORD" \
     --from-literal=SENDGRID_API_KEY_TEST="" \
     --from-literal=OIDC_CLIENT_SECRET="$OIDC_CLIENT_SECRET"
 ```
@@ -436,7 +441,7 @@ Tüm ön gereksinimler (AGIC, SSL, Storage, Secrets) tamamlandıktan sonra deplo
 
 ```bash
 # Tüm değişkenleri export edin (envsubst için gerekli)
-export ACR_NAME TENANT_API_IMAGE_NAME APP_IMAGE_NAME IMAGE_TAG
+export ACR_NAME TENANT_API_IMAGE_NAME APP_IMAGE_NAME BACKGROUND_WORKER_IMAGE_NAME IMAGE_TAG
 export WEBSITE_URL APP_URL APP_HOST SSL_CERT_NAME
 export AUTH_AUTHORITY AUTH_CLIENT_ID
 
@@ -448,6 +453,7 @@ envsubst < deploy.yml | kubectl apply -f -
 - `${ACR_NAME}` - Container Registry adı
 - `${TENANT_API_IMAGE_NAME}` - Tenant API image adı
 - `${APP_IMAGE_NAME}` - App image adı
+- `${BACKGROUND_WORKER_IMAGE_NAME}` - Background Worker image adı
 - `${IMAGE_TAG}` - Image tag
 - `${WEBSITE_URL}` - Ana website URL
 - `${APP_URL}` - Uygulama URL
