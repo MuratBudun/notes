@@ -203,6 +203,11 @@ spec:
             - mountPath: "/app/persistent/queue"
               name: volume-queue
           env:
+            - name: ConnectionStrings__CoreDb
+              valueFrom:
+                secretKeyRef:
+                  name: qmex-forms-app-config
+                  key: DB_CONNECTION_STRING_PROD          
             - name: "ASPNETCORE_FORWARDEDHEADERS_ENABLED"
               value: "true"
             - name: "AllowedHosts"
